@@ -1,0 +1,11 @@
+absolute minimum
+- rotation conversions
+- validity checking
+- add rotations
+
+nice
+- visualize
+- 
+
+fancy
+-chain rotations user input
