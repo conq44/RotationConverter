@@ -1,8 +1,25 @@
 import * as THREE from 'three';
+import RotationConverter from './rotconv.js';
+
+
+const rotconv = new RotationConverter();
+
+document.getElementById('quaternionInput').addEventListener('input', () => rotconv.lastUpdate = 'quaternion');
+document.getElementById('matrixInput').addEventListener('input', () => rotconv.lastUpdate = 'matrix');
 
 
 document.getElementById('convert').addEventListener('click', function() {
-    convertAndDisplay();
+    if(rotconv.lastUpdate == 'quaternion')
+        rotconv.updateFromQuaternionInput();
+    
+    else
+        rotconv.updateFromMatrixInput();
+    
+    resetAxes();
+    q1.premultiply(rotconv.quaternion);
+    q2.premultiply(rotconv.quaternion);
+    q3.premultiply(rotconv.quaternion);
+
 });
 
 document.getElementById('copymatrix').addEventListener('click', function() {
@@ -16,92 +33,32 @@ document.getElementById('reset').addEventListener('click', function() {
 window.addEventListener( 'resize', onWindowResize, false );
 
 
-function getUpperLeft3x3Matrix(matrix4) {
-    // Extracts the first 3x3 part of a THREE.Matrix4 object
-    const elements = matrix4.elements;
-    const UpperLeft = new THREE.Matrix3();
-    UpperLeft.set(elements[0], elements[1], elements[2],   // First column
-    elements[4], elements[5], elements[6],   // Second column
-    elements[8], elements[9], elements[10]   // Third column
-    )
-
-    return UpperLeft;
-}
-
-function convertAndDisplay() {
-    // Example input retrieval and conversion process
-    const sourceValue = document.getElementById('convert').value;
-    // Assuming convertQuaternionToMatrix returns a 3x3 matrix array
-    const matrix = getUpperLeft3x3Matrix(quaternionToRotationMatrix(sourceValue)); // Implement this function based on your conversion logic
-    document.getElementById('result').innerText = 'Rotation Matrix: ' + matrix.elements.join(', ');
+document.getElementById('matrixInput').addEventListener('paste', (event) => {
+    event.preventDefault();
+    console.log("potato");
+    const text = (event.clipboardData || window.clipboardData).getData('text');
+    console.log(text);
+    const numbers = text.split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+    console.log(numbers);
     let index = 0;
-    // Iterate over the matrix to update the table
+    // Assuming a 3x3 matrix for simplicity
     for (let i = 0; i < 3; i++) { // Row iterator
         for (let j = 0; j < 3; j++) { // Column iterator
             // Construct the selector for each input in the matrix
-            const selector = `#matrixOutput tr:nth-child(${i + 1}) td:nth-child(${j + 1}) input`;
+            const selector = `#matrixInput tr:nth-child(${i + 1}) td:nth-child(${j + 1}) input`;
             const input = document.querySelector(selector);
             
             // Update the input value with the matrix element, formatting to a fixed number of decimal places if desired
-            input.value = matrix.elements[index].toFixed(4);
+            input.value = numbers[index].toFixed(4);
             index ++;
         }
-    }
-
-}
-
-function copyMatrixToClipboard() {
-    let matrixString = '';
-    const rows = document.querySelectorAll("#matrixOutput tr");
-
-    rows.forEach((row, rowIndex) => {
-        let rowValues = [];
-        const inputs = row.querySelectorAll("input");
-
-        inputs.forEach(input => {
-            rowValues.push(input.value);
-        });
-
-        matrixString += rowValues.join(',') + (rowIndex < rows.length - 1 ? '\n' : ''); // Tab-separated values, newline-separated rows
-    });
-
-    // Copying to clipboard
-    navigator.clipboard.writeText(matrixString)
-        .then(() => console.log("Matrix copied to clipboard!"))
-        .catch(err => console.error("Error copying matrix to clipboard: ", err));
-}
-
-function quaternionToRotationMatrix() {
-    const input = document.getElementById('quaternionInput').value;
-    const quaternion = input.split(',').map(Number); // Convert input string to array of numbers
-    const [x, y, z, w] = quaternion;
-
-    // check if quaternion is valid
-    const allZero = quaternion.every(num => num === 0);
-    if(allZero)
-    {
-        document.getElementById('result').innerText = 'all zeros is not valid';
-    }
-
-    // ];
-	q.x = x;
-	q.y = y;
-	q.z = z;
-	q.w = w;
-    
-    q.normalize();
-    rotmat.makeRotationFromQuaternion(q);
-    q1.premultiply(q);
-    q1.normalize();
-    q2.premultiply(q);
-    q3.premultiply(q);
-    // Display the result
-
-    return rotmat;
-}
+    };
+});
 
 
 const scene = new THREE.Scene();
+scene.background = new THREE.Color( 0xaaaaaa );
+
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 const renderer = new THREE.WebGLRenderer();
@@ -151,10 +108,32 @@ scene.add( arrowHelper_z);
 camera.position.z = 5;
 animate();
 
+
+function copyMatrixToClipboard() {
+    let matrixString = '';
+    const rows = document.querySelectorAll("#matrixInput tr");
+
+    rows.forEach((row, rowIndex) => {
+        let rowValues = [];
+        const inputs = row.querySelectorAll("input");
+
+        inputs.forEach(input => {
+            rowValues.push(input.value);
+        });
+
+        matrixString += rowValues.join(',') + (rowIndex < rows.length - 1 ? '\n' : ''); // Tab-separated values, newline-separated rows
+    });
+
+    // Copying to clipboard
+    navigator.clipboard.writeText(matrixString)
+        .then(() => console.log("Matrix copied to clipboard!"))
+        .catch(err => console.error("Error copying matrix to clipboard: ", err));
+}
+
+
+
 function animate() {
 	requestAnimationFrame( animate );
- 
-
 	arrowHelper_x.quaternion.slerp(q1, 0.1);
 	arrowHelper_y.quaternion.slerp(q2, 0.1);
 	arrowHelper_z.quaternion.slerp(q3, 0.1);
@@ -168,7 +147,20 @@ function resetquaternion()
     q1.set(0,0.0,-0.707,0.707);
     q2.set(0,0,0,1);
     q3.set(0.707,0,0,0.707);
-
+    document.getElementById('quaternionInput').value = "";
+    let index = 0;
+    // Iterate over the matrix to update the table
+    for (let i = 0; i < 3; i++) { // Row iterator
+        for (let j = 0; j < 3; j++) { // Column iterator
+            // Construct the selector for each input in the matrix
+            const selector = `#matrixInput tr:nth-child(${j + 1}) td:nth-child(${i + 1}) input`;
+            const input = document.querySelector(selector);
+            
+            // Update the input value with the matrix element, formatting to a fixed number of decimal places if desired
+            input.value = " ";
+            index ++;
+        }
+    }
 }
 
 function onWindowResize(){
@@ -178,5 +170,12 @@ function onWindowResize(){
 
     renderer.setSize( window.innerWidth, window.innerHeight );
 
+}
+
+function resetAxes()
+{
+    q1.set(0,0.0,-0.707,0.707);
+    q2.set(0,0,0,1);
+    q3.set(0.707,0,0,0.707);
 }
 
