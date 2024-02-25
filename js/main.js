@@ -3,6 +3,7 @@ import RotationConverter from './rotconv.js';
 
 const rotconv = new RotationConverter();
 
+
 document.getElementById('quaternionInput').addEventListener('input', () => rotconv.lastUpdate = 'quaternion');
 document.getElementById('matrixInput').addEventListener('input', () => rotconv.lastUpdate = 'matrix');
 
@@ -29,7 +30,7 @@ document.getElementById('reset').addEventListener('click', function() {
     resetquaternion()
 });
 
-window.addEventListener( 'resize', onWindowResize, false );
+window.addEventListener( 'resize', adjustWindow, false );
 
 
 document.getElementById('matrixInput').addEventListener('paste', (event) => {
@@ -56,13 +57,18 @@ document.getElementById('matrixInput').addEventListener('paste', (event) => {
 
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color( 0xaaaaaa );
+scene.background = new THREE.Color( 0x1111111 );
 
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
+// document.body.appendChild( renderer.domElement );
+adjustWindow();
+
+document.getElementById('threejs-canvas').appendChild(renderer.domElement);
+
+
 
 const geometry = new THREE.BoxGeometry( 1, 1, 1 );
 const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
@@ -162,13 +168,18 @@ function resetquaternion()
     }
 }
 
-function onWindowResize(){
+function adjustWindow(){
 
-    camera.aspect = window.innerWidth / window.innerHeight;
+    const textContentHeight = document.getElementById('text-content').offsetHeight;
+    const containerHeight = document.getElementById('container').clientHeight;
+    const threeJsCanvasHeight = containerHeight - textContentHeight;
+
+    // Set renderer size
+    renderer.setSize(window.innerWidth, threeJsCanvasHeight);
+    
+    // Update camera aspect ratio if necessary
+    camera.aspect = window.innerWidth / threeJsCanvasHeight;
     camera.updateProjectionMatrix();
-
-    renderer.setSize( window.innerWidth, window.innerHeight );
-
 }
 
 function resetAxes()

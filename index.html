@@ -2,13 +2,16 @@
 <html>
 <head>
     <title>Rotation Converter</title>
-    <!-- You can add CSS here or link to an external stylesheet -->
-</head>
+    <link rel="stylesheet" type="text/css" href="site.css">
+
+  </head>
 <body>
+  <div id = "container">
+    <div id="text-content">
     <h1>Rotation Converter</h1>
+    <h2>Quaternion</h2>
     <input type="text" id="quaternionInput" placeholder="Enter Quaternion x, y, z, w">
-    <button id="convert">Convert</button>
-    <!-- <div id="result"></div> -->
+    <h2>Matrix</h2>
     <table id="matrixInput">
         <tr>
           <td><input type="text"></td>
@@ -26,10 +29,19 @@
           <td><input type="text"></td>
         </tr>
     </table>
+    
+    <h2>Euler</h2>
+    <input type="text" id="eulerInput" placeholder="Enter Euler Rx, Ry, Rz">
+    <br>
+    <button id="convert">Convert</button>
     <button id="copymatrix">Copy Matrix</button>
     <button id="reset">Reset</button>
+  </div>
+  <div id = "threejs-canvas">
     <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
 
     <script type="module" src="./js/main.js"></script>
+  </div>
+</div>
 </body>
 </html>

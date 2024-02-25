@@ -1,0 +1,24 @@
+html, body {
+    color: #000000;
+    background-color: #dddddd;
+    height: 100%;
+    margin: 5;
+    padding: 0;
+    overflow: hidden; /* Hide overflow to prevent scroll */
+}
+
+#container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#text-content {
+    
+    flex-grow: 1;
+}
+
+#threejs-canvas {
+    flex-grow: 1; /* Allow the Three.js canvas to fill available space */
+}
+
