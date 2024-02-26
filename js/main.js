@@ -6,16 +6,20 @@ const rotconv = new RotationConverter();
 
 document.getElementById('quaternionInput').addEventListener('input', () => rotconv.lastUpdate = 'quaternion');
 document.getElementById('matrixInput').addEventListener('input', () => rotconv.lastUpdate = 'matrix');
+document.getElementById('eulerInput').addEventListener('input', () => rotconv.lastUpdate = 'euler');
 
 
 document.getElementById('convert').addEventListener('click', function() {
     if(rotconv.lastUpdate == 'quaternion')
         rotconv.updateFromQuaternionInput();
     
-    else
+    else if(rotconv.lastUpdate == 'quaternion')
         rotconv.updateFromMatrixInput();
     
-    resetAxes();
+    else if(rotconv.lastUpdate == 'euler')
+        rotconv.updateFromEulerInput();    
+        resetAxes();
+        
     q1.premultiply(rotconv.quaternion);
     q2.premultiply(rotconv.quaternion);
     q3.premultiply(rotconv.quaternion);
@@ -31,6 +35,7 @@ document.getElementById('reset').addEventListener('click', function() {
 });
 
 window.addEventListener( 'resize', adjustWindow, false );
+document.addEventListener('DOMContentLoaded', adjustWindow);
 
 
 document.getElementById('matrixInput').addEventListener('paste', (event) => {
@@ -70,7 +75,7 @@ document.getElementById('threejs-canvas').appendChild(renderer.domElement);
 
 
 
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5);
 const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 const cube = new THREE.Mesh( geometry, material );
 
@@ -105,11 +110,7 @@ scene.add( arrowHelper_x);
 scene.add( arrowHelper_y);
 scene.add( arrowHelper_z);
 
-// let axesHelper = new THREE.AxesHelper(2);
-// const axis_pos = new THREE.Vector3(-3, -2, 0);
-// axesHelper.position.copy(axis_pos);
-// scene.add(axesHelper);
-
+// scene.add(cube);
 camera.position.z = 5;
 animate();
 
@@ -142,7 +143,7 @@ function animate() {
 	arrowHelper_x.quaternion.slerp(q1, 0.1);
 	arrowHelper_y.quaternion.slerp(q2, 0.1);
 	arrowHelper_z.quaternion.slerp(q3, 0.1);
-
+    cube.quaternion.slerp(rotconv.quaternion,0.1);
 	renderer.render( scene, camera );
 }
 
@@ -168,17 +169,32 @@ function resetquaternion()
     }
 }
 
-function adjustWindow(){
+function adjustWindow() {
+    const container = document.getElementById('container');
+    const textContent = document.getElementById('text-content');
+    const threeJsCanvas = document.getElementById('threejs-canvas');
 
-    const textContentHeight = document.getElementById('text-content').offsetHeight;
-    const containerHeight = document.getElementById('container').clientHeight;
-    const threeJsCanvasHeight = containerHeight - textContentHeight;
+    // Determine if the layout is currently row or column
+    const isRowLayout = window.innerWidth >= 1200; // Assuming 600px is the breakpoint
 
-    // Set renderer size
-    renderer.setSize(window.innerWidth, threeJsCanvasHeight);
+    let targetWidth, targetHeight;
+
+    if (isRowLayout) {
+        // In row layout, both text content and canvas are side by side
+        targetWidth = container.clientWidth / 2;
+        targetHeight = container.clientHeight - 15; // Use the full container height
+    } else {
+        // In column layout, elements are stacked, so use the container's width and adjust height
+        targetWidth = container.clientWidth;
+        const textContentHeight = textContent.offsetHeight;
+        targetHeight = container.clientHeight - textContentHeight - 15;
+    }
+
+    // Adjust Three.js renderer size
+    renderer.setSize(targetWidth, targetHeight);
     
-    // Update camera aspect ratio if necessary
-    camera.aspect = window.innerWidth / threeJsCanvasHeight;
+    // Update camera aspect ratio
+    camera.aspect = targetWidth / targetHeight;
     camera.updateProjectionMatrix();
 }
 

@@ -22,3 +22,15 @@ html, body {
     flex-grow: 1; /* Allow the Three.js canvas to fill available space */
 }
 
+/* When the window is wider than 600px, arrange text and canvas side by side */
+@media (min-width: 1200px) {
+    #container {
+        flex-direction: row; /* Switch to horizontal layout */
+    }
+
+    #text-content, #threejs-canvas {
+        width: 50%; /* Each takes half of the container's width */
+        height: auto;
+        flex-grow: 0;
+    }
+}

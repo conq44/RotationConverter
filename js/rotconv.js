@@ -4,6 +4,8 @@ class RotationConverter {
         this.quaternion = new THREE.Quaternion(); // Default identity quaternion
         this.rtmat = new THREE.Matrix4();
         this.matrix = new THREE.Matrix3(); // Initialize with corresponding matrix
+        this.Euler = new THREE.Euler();
+        this.eulerOrder = 'XYZ';
         this.lastUpdate = 'quaternion';
     }
 
@@ -15,8 +17,9 @@ class RotationConverter {
         this.quaternion.normalize();
         this.rtmat.makeRotationFromQuaternion(this.quaternion);
         this.matrix.setFromMatrix4(this.rtmat);
-
+        this.Euler.setFromRotationMatrix(this.rtmat, this.eulerOrder);
         this.updateMatrixDisplay();
+        this.updateEulerDisplay();
     }
 
     updateFromMatrixInput() {
@@ -27,13 +30,32 @@ class RotationConverter {
         this.rtmat.setFromMatrix3(this.matrix);
         console.log(this.rtmat.elements);
         this.quaternion.setFromRotationMatrix(this.rtmat);
-        
+        this.Euler.setFromRotationMatrix(this.rtmat, this.eulerOrder);
         this.updateQuaternionDisplay();
+        this.updateEulerDisplay();
+    }
+
+    updateFromEulerInput() {
+        // Parse input and update matrix
+        // Update quaternion based on new matrix
+        this.Euler = this.parseEulerInput();
+        this.rtmat.makeRotationFromEuler(this.Euler);
+        this.quaternion.setFromRotationMatrix(this.rtmat);
+        this.quaternion.setFromRotationMatrix(this.rtmat);
+        this.updateQuaternionDisplay();
+        this.updateMatrixDisplay();
     }
 
     updateQuaternionDisplay() {
         // Update UI elements for quaternion display
         document.getElementById('quaternionInput').value = `${this.quaternion.x.toFixed(4)}, ${this.quaternion.y.toFixed(4)}, ${this.quaternion.z.toFixed(4)}, ${this.quaternion.w.toFixed(4)}`;
+
+    }
+
+
+    updateEulerDisplay() {
+        // Update UI elements for quaternion display
+        document.getElementById('eulerInput').value = `${this.Euler.x.toFixed(4)}, ${this.Euler.y.toFixed(4)}, ${this.Euler.z.toFixed(4)}`;
 
     }
 
@@ -63,6 +85,19 @@ class RotationConverter {
         const threeQuat = new THREE.Quaternion(x, y, z, w);
         console.log(threeQuat);
         return threeQuat;
+
+    }
+
+    parseEulerInput() {
+        // Convert input string to quaternion object
+        // Return quaternion object
+        const input = document.getElementById('eulerInput').value;
+        // this.eulerOrder = document.getElementById('eulerOrder');
+        const euler = input.split(',').map(Number); // Convert input string to array of numbers
+        const [rx, ry, rz] = euler;
+        const threeeuler = new THREE.Euler(rx, ry, rz, this.eulerOrder);
+        console.log(threeeuler);
+        return threeeuler;
 
     }
 
